@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_aws_amplify_suppression.dart';
 
@@ -52,49 +51,63 @@ Future<T> tracedAwsAmplify<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_aws_amplify');
   final span = t.startSpan('amplify $operation', kind: SpanKind.client);
   try {
-    span.setStringAttribute('rpc.system', 'aws-api');
-    span.setStringAttribute('rpc.service', 'Amplify');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.system', 'aws-api')]));
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.service', 'Amplify')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.appId != null) {
-        span.setStringAttribute('aws.amplify.app.id', res.appId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('aws.amplify.app.id', res.appId!)]));
       }
       if (res.appName != null) {
-        span.setStringAttribute('aws.amplify.app.name', res.appName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('aws.amplify.app.name', res.appName!)]));
       }
       if (res.branchName != null) {
-        span.setStringAttribute('vcs.ref.head.name', res.branchName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('vcs.ref.head.name', res.branchName!)]));
       }
       if (res.jobId != null) {
-        span.setStringAttribute('aws.amplify.job.id', res.jobId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('aws.amplify.job.id', res.jobId!)]));
       }
       if (res.jobType != null) {
-        span.setStringAttribute('aws.amplify.job.type', res.jobType!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('aws.amplify.job.type', res.jobType!)]));
       }
       if (res.jobStatus != null) {
-        span.setStringAttribute('aws.amplify.job.status', res.jobStatus!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('aws.amplify.job.status', res.jobStatus!)]));
       }
       if (res.artifactsUrl != null) {
-        span.setStringAttribute('aws.amplify.artifacts_url', res.artifactsUrl!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString('aws.amplify.artifacts_url', res.artifactsUrl!)
+        ]));
       }
       if (res.region != null) {
-        span.setStringAttribute('cloud.region', res.region!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('cloud.region', res.region!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('amplify.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('amplify.error.code', res.errorCode!)]));
       }
-      final fail =
-          res.errorCode != null ||
+      final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-          ErrorResource.errorType.key,
-          res.errorCode ?? 'amplify.error',
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+            ErrorResource.errorType.key,
+            res.errorCode ?? 'amplify.error',
+          )
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }
