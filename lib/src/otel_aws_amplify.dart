@@ -6,6 +6,7 @@ import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'otel_aws_amplify_suppression.dart';
 
 class AwsAmplifyResult {
+  /// Creates a result.
   const AwsAmplifyResult({
     this.appId,
     this.appName,
@@ -33,8 +34,13 @@ class AwsAmplifyResult {
   final String? errorMessage;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class AwsAmplifyCallResult<T> {
+  /// Creates a call result.
   const AwsAmplifyCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final AwsAmplifyResult? result;
 }
