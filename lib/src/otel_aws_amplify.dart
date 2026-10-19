@@ -1,7 +1,7 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_aws_amplify_suppression.dart';
 
@@ -42,69 +42,72 @@ class AwsAmplifyCallResult<T> {
 Future<T> tracedAwsAmplify<T>({
   required String operation,
   required Future<AwsAmplifyCallResult<T>> Function() invoke,
-  Tracer? tracer,
+  APITracer? tracer,
 }) async {
   if (awsAmplifyInstrumentationSuppressed()) {
     final r = await invoke();
     return r.value;
   }
-  final t = tracer ?? OTel.tracerProvider().getTracer('otel_aws_amplify');
+  final t = tracer ?? OTelAPI.tracerProvider().getTracer('otel_aws_amplify');
   final span = t.startSpan('amplify $operation', kind: SpanKind.client);
   try {
     span.addAttributes(
-        OTel.attributes([OTel.attributeString('rpc.system', 'aws-api')]));
-    span.addAttributes(
-        OTel.attributes([OTel.attributeString('rpc.service', 'Amplify')]));
+        OTelAPI.attributes([OTelAPI.attributeString('rpc.system', 'aws-api')]));
+    span.addAttributes(OTelAPI.attributes(
+        [OTelAPI.attributeString('rpc.service', 'Amplify')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.appId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('aws.amplify.app.id', res.appId!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('aws.amplify.app.id', res.appId!)]));
       }
       if (res.appName != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('aws.amplify.app.name', res.appName!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('aws.amplify.app.name', res.appName!)]));
       }
       if (res.branchName != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('vcs.ref.head.name', res.branchName!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('vcs.ref.head.name', res.branchName!)]));
       }
       if (res.jobId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('aws.amplify.job.id', res.jobId!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('aws.amplify.job.id', res.jobId!)]));
       }
       if (res.jobType != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('aws.amplify.job.type', res.jobType!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('aws.amplify.job.type', res.jobType!)]));
       }
       if (res.jobStatus != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('aws.amplify.job.status', res.jobStatus!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('aws.amplify.job.status', res.jobStatus!)
+        ]));
       }
       if (res.artifactsUrl != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString('aws.amplify.artifacts_url', res.artifactsUrl!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
+              'aws.amplify.artifacts_url', res.artifactsUrl!)
         ]));
       }
       if (res.region != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('cloud.region', res.region!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('cloud.region', res.region!)]));
       }
       if (res.statusCode != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('http.response.status_code', res.statusCode!)
+        ]));
       }
       if (res.errorCode != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('amplify.error.code', res.errorCode!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('amplify.error.code', res.errorCode!)]));
       }
       final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString(
-            ErrorResource.errorType.key,
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
+            ErrorAttributes.errorType.key,
             res.errorCode ?? 'amplify.error',
           )
         ]));
